@@ -91,4 +91,4 @@ stages:
               azureSubscription: 'GitHub Training (d105f22e-7313-4267-b3b2-572544fc707a)'
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
-              inlineScript: 'az webapp config set -g GitHub-DevOps -n pythonvaletapp --startup-file gunicorn --bind=0.0.0.0 --workers=4 startup:app'
+              inlineScript: 'az webapp config set -g GitHub-DevOps -n pythonvaletapp --startup-file "gunicorn --bind=0.0.0.0 --workers=4 startup:app"'
