@@ -1,0 +1,71 @@
+name: GitHubPartnership//GitHubInfo-India.python-sample-vscode-flask-tutorial
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - "*"
+env:
+  AZURESERVICECONNECTIONID: 63778d89-8536-409c-9855-681e21734adb
+  ENVIRONMENTNAME: pythonvaletapp
+  PROJECTROOT: "$(System.DefaultWorkingDirectory)"
+  PYTHONVERSION: '3.7'
+  VMIMAGENAME: ubuntu-latest
+  WEBAPPNAME: pythonvaletapp
+jobs:
+  Build-BuildJob:
+    runs-on: $(vmImageName)
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: Use Python $(pythonVersion)
+      uses: actions/setup-python@v1
+      with:
+        python-version: "$(pythonVersion)"
+    - name: Install requirements
+      run: |
+        python -m venv antenv
+        source antenv/bin/activate
+        python -m pip install --upgrade pip
+        pip install setup
+        pip install -r requirements.txt
+      working-directory: "$(projectRoot)"
+    - name: Zip files
+      run: 7z u $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip ./$(projectRoot)/*
+    - name: Upload package
+      uses: actions/upload-artifact@v2
+      with:
+        name: drop
+        path: "$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip"
+  Deploy-DeploymentJob:
+    needs:
+    - Build-BuildJob
+    runs-on: $(vmImageName)
+    environment:
+      name: "$(environmentName)"
+    if: succeeded()
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: download artifact
+      uses: actions/download-artifact@v2
+    strategy:
+#       # This item has no matching transformer
+#       runonce:
+#         deploy:
+#           steps:
+#           - task: UsePythonVersion@0
+#             inputs:
+#               versionspec: "$(pythonVersion)"
+#             displayname: Use Python version
+#           - task: AzureWebApp@1
+#             displayname: 'Deploy Azure Web App : pythonvaletapp'
+#               azuresubscription: "$(azureServiceConnectionId)"
+#               appname: "$(webAppName)"
+#               package: "$(Pipeline.Workspace)/drop/$(Build.BuildId).zip"
+#           - task: AzureCLI@2
+#               azuresubscription: GitHub Training (d105f22e-7313-4267-b3b2-572544fc707a)
+#               scripttype: bash
+#               scriptlocation: inlineScript
+#               inlinescript: az webapp config set -g GitHub-DevOps -n pythonvaletapp --startup-file "gunicorn --bind=0.0.0.0 --workers=4 startup:app"
